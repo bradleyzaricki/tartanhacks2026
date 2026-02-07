@@ -20,7 +20,7 @@ public class PromptEmbedder {
     public static void main(String[] args) throws Exception {
         String apiKey =
 
-        Scanner scan = new Scanner(System.in);
+                Scanner scan = new Scanner(System.in);
         System.out.println("Enter Input Prompt 1\n");
         String a = scan.nextLine();
         System.out.println("Enter Input Prompt 2\n");
@@ -32,7 +32,7 @@ public class PromptEmbedder {
 
         float[] va = embed(apiKey, ca);
         float[] vb = embed(apiKey, cb);
-        System.out.println(va);
+
         report(a, b, ca, cb, va, vb);
 
         PromptIndex idx = new PromptIndex();
@@ -42,6 +42,24 @@ public class PromptEmbedder {
 
         idx.upsert(idA, va, Map.of("raw_prompt", a));
         idx.upsert(idB, vb, Map.of("raw_prompt", b));
+        PromptIndex.PromptMatch matchA = idx.query(va);
+        PromptIndex.PromptMatch matchB = idx.query(vb);
+
+
+        if (matchA != null) {
+            String cachedPrompt = matchA.metadata().path("raw_prompt").asText();
+            System.out.println("CACHE HIT: " + cachedPrompt);
+        } else {
+            System.out.println("CACHE MISS");
+        }
+
+        if (matchB != null) {
+            String cachedPrompt = matchB.metadata().path("raw_prompt").asText();
+            System.out.println("CACHE HIT: " + cachedPrompt);
+        } else {
+            System.out.println("CACHE MISS");
+        }
+
 
     }
 
