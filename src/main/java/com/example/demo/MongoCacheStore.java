@@ -5,7 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import org.bson.Document;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
@@ -13,10 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class MongoCacheStore {
-
-    private static final String MONGO_URI =
-            "mongodb+srv://lukecampbell:lukecampbell@cluster0.cfkj2vo.mongodb.net/promptcache" +
-                    "?retryWrites=true&w=majority&appName=Cluster0";
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String MONGO_URI = dotenv.get("MONGO_URI");
 
     private static final String DB_NAME = "promptcache";
     private static final String PROMPTS = "prompts";

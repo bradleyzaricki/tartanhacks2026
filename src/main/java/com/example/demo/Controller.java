@@ -1,11 +1,15 @@
 package com.example.demo;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
 public class Controller {
 
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String openAIapi = dotenv.get("OPENAI_API");
+    private static final String Dedalusapi = dotenv.get("DEDALUS_API");
     @PostMapping("/api/receiveMessage")
     public Map<String, Object> receiveMessage(@RequestBody Map<String, String> body) {
         try {
@@ -18,7 +22,7 @@ public class Controller {
             String promptNormalized = promptEmbed.canonicalize(prompt);
 
             float[] vector = promptEmbed.embed(
-                    "//apiopenai",
+                    openAIapi,
                     promptNormalized
             );
 
@@ -38,13 +42,13 @@ public class Controller {
 
                     savedTokens = mongo.getTokensUsedForPromptId(promptId).orElse(0);
                 } else {
-                    Dedalus dedalus = new Dedalus("//apideadullus");
+                    Dedalus dedalus = new Dedalus(Dedalusapi);
                     DedalusResult result = dedalus.generateDedalusResponse(prompt);
                     out = result.text();
                     promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out,result.totalTokens());
                 }
             } else {
-                Dedalus dedalus = new Dedalus("//apideadulus");
+                Dedalus dedalus = new Dedalus(Dedalusapi);
                 DedalusResult result = dedalus.generateDedalusResponse(prompt);
                 out = result.text();
                 promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());

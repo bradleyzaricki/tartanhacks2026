@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -10,14 +11,17 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 public class PromptIndex {
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String pineconeApi = dotenv.get("PINECONE_API");
+    private static final String pineconehostApi = dotenv.get("PINECONE_HOST");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
-    private static final String PINECONE_API_KEY =
+    private static final String PINECONE_API_KEY = pineconeApi;
 
 
-    private static final String PINECONE_HOST = "";
+    private static final String PINECONE_HOST = pineconehostApi;
 
     private static final String NAMESPACE = "dev";
 

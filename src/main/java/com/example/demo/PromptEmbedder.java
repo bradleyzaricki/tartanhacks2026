@@ -2,6 +2,8 @@ package com.example.demo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -15,10 +17,12 @@ public class PromptEmbedder {
     static final double COS_ACCEPT = 0.9;
     static final double COS_REJECT = 0.8;
     static final double JACCARD_ACCEPT = 0.6;
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String openAIapi = dotenv.get("OPENAI_API");
 
 
     public static void main(String[] args) throws Exception {
-        String apiKey ="";
+        String apiKey = openAIapi;
 
         Scanner scan = new Scanner(System.in);
         System.out.println("Enter Input Prompt 1\n");
