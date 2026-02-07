@@ -18,8 +18,7 @@ public class PromptEmbedder {
 
 
     public static void main(String[] args) throws Exception {
-        String apiKey = System.getenv("OPENAI_API_KEY");
-        if (apiKey == null || apiKey.isBlank()) throw new RuntimeException("OPENAI_API_KEY not set");
+        String apiKey =
 
         Scanner scan = new Scanner(System.in);
         System.out.println("Enter Input Prompt 1\n");
@@ -35,6 +34,15 @@ public class PromptEmbedder {
         float[] vb = embed(apiKey, cb);
         System.out.println(va);
         report(a, b, ca, cb, va, vb);
+
+        PromptIndex idx = new PromptIndex();
+
+        String idA = "prompt-" + UUID.randomUUID();
+        String idB = "prompt-" + UUID.randomUUID();
+
+        idx.upsert(idA, va, Map.of("raw_prompt", a));
+        idx.upsert(idB, vb, Map.of("raw_prompt", b));
+
     }
 
     /**
