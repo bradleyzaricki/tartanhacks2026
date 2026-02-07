@@ -15,7 +15,7 @@ import java.util.UUID;
 public class MongoCacheStore {
 
     private static final String MONGO_URI =
-            "mongodb+srv://luke:luke@cluster0.cfkj2vo.mongodb.net/promptcache" +
+            "mongodb+srv://lukecampbell:lukecampbell@cluster0.cfkj2vo.mongodb.net/promptcache" +
                     "?retryWrites=true&w=majority&appName=Cluster0";
 
     private static final String DB_NAME = "promptcache";
@@ -40,26 +40,28 @@ public class MongoCacheStore {
      * Save prompt → output (many prompts can map to same output)
      * @return promptId (use this as Pinecone vector id)
      */
-    public String savePromptAndOutput(String rawPrompt, String canonicalPrompt, String outputText) {
+    public String savePromptAndOutput(String rawPrompt, String canonicalPrompt, String outputText, int tokens) {
         long now = System.currentTimeMillis();
 
-        // 1) dedupe output by hash (use hash as _id)
+        int tokensUsed = tokens;
+
         String outputHash = sha256(outputText);
 
         Document output = outputs.find(Filters.eq("_id", outputHash)).first();
         if (output == null) {
             output = new Document("_id", outputHash)
                     .append("text", outputText)
+                    .append("tokensUsed", tokensUsed)
                     .append("createdAt", now);
             outputs.insertOne(output);
         }
 
-        // 2) create prompt that references output
         String promptId = "prompt-" + UUID.randomUUID();
         Document prompt = new Document("_id", promptId)
                 .append("rawPrompt", rawPrompt)
                 .append("canonicalPrompt", canonicalPrompt)
                 .append("outputId", outputHash)
+                .append("tokensUsed", tokensUsed)
                 .append("createdAt", now);
 
         prompts.insertOne(prompt);

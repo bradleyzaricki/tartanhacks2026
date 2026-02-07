@@ -27,29 +27,37 @@
             font-family: var(--sans);
             background: var(--bg);
             color: var(--text);
+            overflow: hidden;
         }
 
+        /* FULL SCREEN LAYOUT */
         .center{
-            height: 100%;
+            position: fixed;
+            inset: 0;
             display: flex;
-            align-items: center;
+            align-items: stretch;
             justify-content: center;
+            padding: 24px;
         }
 
         .stack{
-            width: min(720px, 92%);
+            width: min(1380px, 98vw);
+            height: 100%;
             display: flex;
             flex-direction: column;
+            gap: 14px;
         }
 
+        /* RESPONSE WINDOW NOW FILLS AVAILABLE SPACE */
         .response-box{
-            margin-bottom: 10px;
+            flex: 1 1 auto;
+            margin: 0;
             padding: 12px;
             border-radius: var(--radius);
             background: rgba(23,22,18,0.85);
             border: 1px solid var(--border);
-            max-height: 340px;
             overflow-y: auto;
+            min-height: 0; /* important for flex scrolling */
         }
 
         .response-entry{
@@ -126,13 +134,15 @@
             line-height: 1.45;
         }
 
+        /* INPUT BOX LOWER (more breathing room above it) */
         .input-box{
             display: flex;
             gap: 10px;
-            padding: 10px;
+            padding: 12px;
             border-radius: var(--radius);
             background: var(--panel);
             border: 1px solid var(--border);
+            margin-top: 10px; /* pushes it a bit lower */
         }
 
         textarea{
@@ -144,6 +154,7 @@
             color: var(--text);
             font-size: 15px;
             padding: 10px;
+            line-height: 1.35;
         }
 
         textarea::placeholder{
@@ -166,7 +177,6 @@
 
         .feedback{
             display: none;
-            margin-top: 10px;
             padding: 10px 12px;
             border-radius: var(--radius);
             background: rgba(23,22,18,0.85);
@@ -245,7 +255,6 @@
     const goodBtn = document.getElementById("good");
     const badBtn = document.getElementById("bad");
 
-    let responseCount = 0;
     let lastPrompt = "";
     let busy = false;
 
@@ -263,8 +272,6 @@
     }
 
     function appendResponse({ prompt, response, recycled = false, regenerated = false } = {}) {
-        responseCount++;
-
         const entry = document.createElement("div");
         entry.className = "response-entry";
 
@@ -319,17 +326,8 @@
         responseBox.scrollTop = responseBox.scrollHeight;
     }
 
-    async function postNewPrompt(payload){
-        const res = await fetch("/api/newPrompt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        return await res.json();
-    }
-
-    async function postGeneratePrompt(payload){
-        const res = await fetch("/api/generatePrompt", {
+    async function postReceiveMessage(payload){
+        const res = await fetch("/api/receiveMessage", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -344,11 +342,11 @@
         lastPrompt = text;
         setBusy(true);
 
-        const data = await postNewPrompt({ message: text });
+        const data = await postReceiveMessage({ message: text });
 
         appendResponse({
             prompt: data.prompt ?? text,
-            response: data.response ?? "",
+            response: data.output ?? "",
             recycled: data.recycled === true,
             regenerated: false
         });
@@ -361,19 +359,13 @@
 
     goodBtn.onclick = async () => {
         if (busy) return;
-        setBusy(true);
-
-        await postNewPrompt({ message: "GOOD_RESPONSE" });
         feedback.style.display = "none";
-
-        setBusy(false);
     };
 
     badBtn.onclick = async () => {
         if (busy) return;
         setBusy(true);
 
-        await postNewPrompt({ message: "BAD_RESPONSE" });
         feedback.style.display = "none";
 
         if (!lastPrompt) {
@@ -387,12 +379,12 @@
             return;
         }
 
-        const data = await postGeneratePrompt({ message: lastPrompt });
+        const data = await postReceiveMessage({ message: lastPrompt });
 
         appendResponse({
             prompt: data.prompt ?? lastPrompt,
-            response: data.response ?? "",
-            recycled: false,
+            response: data.output ?? "",
+            recycled: data.recycled === true,
             regenerated: true
         });
 

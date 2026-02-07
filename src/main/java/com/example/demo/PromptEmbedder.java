@@ -34,9 +34,9 @@ public class PromptEmbedder {
 
         String outA = null;
         String promptId = "";
-        if (mA != null && mA.score() >= 0.95) {
+        if (mA != null && mA.score() >=  0.7) {
             outA = mongo.getOutputForPromptId(mA.id()).orElse(null);
-            promptId = mongo.savePromptAndOutput(a, ca, outA);
+            promptId = mongo.savePromptAndOutput(a, ca, outA, -1);
 
         }
 
@@ -49,7 +49,7 @@ public class PromptEmbedder {
             DedalusResult result = dedalus.generateDedalusResponse(a);
             outA = result.text();
             int tokenCount = result.totalTokens();
-            promptId = mongo.savePromptAndOutput(a, ca, outA);
+            promptId = mongo.savePromptAndOutput(a, ca, outA, result.totalTokens());
         }
         idx.upsert(promptId, va, Map.of("raw_prompt", a));
         System.out.println("\nOUTPUT A:\n" + outA);

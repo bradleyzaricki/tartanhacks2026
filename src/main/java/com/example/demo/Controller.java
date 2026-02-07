@@ -11,36 +11,60 @@ public class Controller {
         return "hello from spring boot";
     }
 
-    @PostMapping("/api/newPrompt")
+    @PostMapping("/api/receiveMessage")
     public Map<String, Object> receiveMessage(@RequestBody Map<String, String> body) {
-        String message = body.get("message");
-        String prompt = message;
+        try {
+            String prompt = body.getOrDefault("message", "");
 
+            PromptEmbedder promptEmbed = new PromptEmbedder();
+            PromptIndex idx = new PromptIndex();
+            MongoCacheStore mongo = new MongoCacheStore();
 
-        //todo replace this with potential match
-        boolean recycled = message.toLowerCase().contains("recycle");
-        //if match
-        String response = recycled
-                ? "Recycled Prompt"
-                : "New Prompt";
+            String promptNormalized = promptEmbed.canonicalize(prompt);
 
-        return Map.of(
-                "prompt", prompt,
-                "response", response,
-                "recycled", recycled
-        );
-    }
+            float[] vector = promptEmbed.embed(
+                    "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",
+                    promptNormalized
+            );
 
-    @PostMapping("/api/generatePrompt")
-    public Map<String, Object> generatePrompt(@RequestBody Map<String, String> body) {
-        String prompt = body.get("message");
+            PromptIndex.PromptMatch match = idx.query(vector);
 
+            boolean recycled = false;
+            String out;
+            String promptId;
 
+            if (match != null && match.score() >= 0.8f) {
+                String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
+                if (cached != null) {
+                    out = cached;
+                    recycled = true;
+                    promptId = match.id();
+                } else {
+                    Dedalus dedalus = new Dedalus("dsk-test-874a4fde022d-c6a8731e899a179186d7088ee6c7757e");
+                    DedalusResult result = dedalus.generateDedalusResponse(prompt);
+                    out = result.text();
+                    promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out,result.totalTokens());
+                }
+            } else {
+                Dedalus dedalus = new Dedalus("dsk-test-874a4fde022d-c6a8731e899a179186d7088ee6c7757e");
+                DedalusResult result = dedalus.generateDedalusResponse(prompt);
+                out = result.text();
+                promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());
+            }
 
-        return Map.of(
-                "prompt", prompt,
-                "response", "aaa",
-                "recycled", false
-        );
+            idx.upsert(promptId, vector, Map.of("raw_prompt", prompt));
+
+            return Map.of(
+                    "prompt", prompt,
+                    "output", out,
+                    "recycled", recycled
+            );
+        } catch (Exception e) {
+            return Map.of(
+                    "prompt", body.getOrDefault("message", ""),
+                    "output", "Failed: " + e.getMessage(),
+                    "recycled", false
+            );
+        }
     }
 }
