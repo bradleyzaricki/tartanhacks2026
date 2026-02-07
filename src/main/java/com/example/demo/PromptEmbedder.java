@@ -18,49 +18,41 @@ public class PromptEmbedder {
 
 
     public static void main(String[] args) throws Exception {
-        String apiKey =
+        String apiKey ="";
 
-                Scanner scan = new Scanner(System.in);
+        Scanner scan = new Scanner(System.in);
         System.out.println("Enter Input Prompt 1\n");
         String a = scan.nextLine();
-        System.out.println("Enter Input Prompt 2\n");
-
-        String b = scan.nextLine();
-
-        String ca = canonicalize(a);
-        String cb = canonicalize(b);
-
-        float[] va = embed(apiKey, ca);
-        float[] vb = embed(apiKey, cb);
-
-        report(a, b, ca, cb, va, vb);
 
         PromptIndex idx = new PromptIndex();
+        MongoCacheStore mongo = new MongoCacheStore();
 
-        String idA = "prompt-" + UUID.randomUUID();
-        String idB = "prompt-" + UUID.randomUUID();
+        String ca = canonicalize(a);
+        float[] va = embed(apiKey, ca);
 
-        idx.upsert(idA, va, Map.of("raw_prompt", a));
-        idx.upsert(idB, vb, Map.of("raw_prompt", b));
-        PromptIndex.PromptMatch matchA = idx.query(va);
-        PromptIndex.PromptMatch matchB = idx.query(vb);
+        PromptIndex.PromptMatch mA = idx.query(va);
 
+        String outA = null;
+        String promptId = "";
+        if (mA != null && mA.score() >= 0.95) {
+            outA = mongo.getOutputForPromptId(mA.id()).orElse(null);
+            promptId = mongo.savePromptAndOutput(a, ca, outA);
 
-        if (matchA != null) {
-            String cachedPrompt = matchA.metadata().path("raw_prompt").asText();
-            System.out.println("CACHE HIT: " + cachedPrompt);
-        } else {
-            System.out.println("CACHE MISS");
         }
 
-        if (matchB != null) {
-            String cachedPrompt = matchB.metadata().path("raw_prompt").asText();
-            System.out.println("CACHE HIT: " + cachedPrompt);
+        if (outA != null) {
+            System.out.println("CACHE HIT A score=" + mA.score() + " id=" + mA.id());
         } else {
-            System.out.println("CACHE MISS");
+            System.out.println("CACHE MISS A -> calling Dedalus");
+            Dedalus dedalus = new Dedalus("");
+
+            DedalusResult result = dedalus.generateDedalusResponse(a);
+            outA = result.text();
+            int tokenCount = result.totalTokens();
+            promptId = mongo.savePromptAndOutput(a, ca, outA);
         }
-
-
+        idx.upsert(promptId, va, Map.of("raw_prompt", a));
+        System.out.println("\nOUTPUT A:\n" + outA);
     }
 
     /**

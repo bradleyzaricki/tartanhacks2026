@@ -16,7 +16,8 @@ public class PromptIndex {
 
     private static final String PINECONE_API_KEY =
 
-    private static final String PINECONE_HOST = "https://tartanhacks-f8kuz28.svc.aped-4627-b74a.pinecone.io";
+
+    private static final String PINECONE_HOST = "";
 
     private static final String NAMESPACE = "dev";
 
