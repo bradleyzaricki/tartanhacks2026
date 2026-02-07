@@ -23,7 +23,7 @@ public class Controller {
             String promptNormalized = promptEmbed.canonicalize(prompt);
 
             float[] vector = promptEmbed.embed(
-                    "",
+                    "//apiopenai",
                     promptNormalized
             );
 
@@ -40,13 +40,13 @@ public class Controller {
                     recycled = true;
                     promptId = match.id();
                 } else {
-                    Dedalus dedalus = new Dedalus("dsk-test-874a4fde022d-c6a8731e899a179186d7088ee6c7757e");
+                    Dedalus dedalus = new Dedalus("//apideadullus");
                     DedalusResult result = dedalus.generateDedalusResponse(prompt);
                     out = result.text();
                     promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out,result.totalTokens());
                 }
             } else {
-                Dedalus dedalus = new Dedalus("dsk-test-874a4fde022d-c6a8731e899a179186d7088ee6c7757e");
+                Dedalus dedalus = new Dedalus("//apideadulus");
                 DedalusResult result = dedalus.generateDedalusResponse(prompt);
                 out = result.text();
                 promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());
