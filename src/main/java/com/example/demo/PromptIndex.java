@@ -45,11 +45,10 @@ public class PromptIndex {
         }
     }
 
-    /** Query by vector */
-    public List<PromptMatch> query(float[] vector, int topK) throws Exception {
+    public PromptMatch query(float[] vector) throws Exception {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("vector", vector);
-        body.put("topK", topK);
+        body.put("topK", 1);
         body.put("includeMetadata", true);
         body.put("namespace", NAMESPACE);
 
@@ -66,16 +65,20 @@ public class PromptIndex {
         }
 
         JsonNode matches = MAPPER.readTree(res.body()).path("matches");
-        List<PromptMatch> out = new ArrayList<>();
+        if (!matches.isArray() || matches.isEmpty()) return null;
 
-        for (JsonNode m : matches) {
-            out.add(new PromptMatch(
+        JsonNode m = matches.get(0);
+        double score = m.path("score").asDouble();
+
+        if (score >= 0.95) {
+            return new PromptMatch(
                     m.path("id").asText(),
-                    m.path("score").asDouble(),
+                    score,
                     m.path("metadata")
-            ));
+            );
         }
-        return out;
+
+        return null;
     }
 
     public record PromptMatch(String id, double score, JsonNode metadata) {}
