@@ -30,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* FULL SCREEN LAYOUT */
         .center{
             position: fixed;
             inset: 0;
@@ -48,7 +47,6 @@
             gap: 14px;
         }
 
-        /* RESPONSE WINDOW NOW FILLS AVAILABLE SPACE */
         .response-box{
             flex: 1 1 auto;
             margin: 0;
@@ -57,7 +55,7 @@
             background: rgba(23,22,18,0.85);
             border: 1px solid var(--border);
             overflow-y: auto;
-            min-height: 0; /* important for flex scrolling */
+            min-height: 0;
         }
 
         .response-entry{
@@ -134,15 +132,117 @@
             line-height: 1.45;
         }
 
-        /* INPUT BOX LOWER (more breathing room above it) */
+        .composer{
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+            gap: 1px;
+        }
+
+        .module{
+            height: 86px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            flex: 0 0 auto;
+        }
+
+        .tree-btn{
+            cursor: pointer;
+            border: 1px solid rgba(194,166,109,0.45);
+            background: rgba(194,166,109,0.10);
+            gap: 10px;
+            user-select: none;
+        }
+
+        .tree-btn:hover{
+            background: rgba(194,166,109,0.16);
+        }
+
+        .tree-icon{
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1px solid rgba(194,166,109,0.35);
+            background: rgba(0,0,0,0.18);
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .tree-label{
+            font-size: 13px;
+            font-weight: 650;
+            letter-spacing: 0.02em;
+            color: var(--text);
+            opacity: 0.95;
+        }
+
+        .seeds{
+            min-width: 190px;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .seeds-left{
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .seed-icon{
+            width: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1px solid rgba(122,143,90,0.45);
+            background: rgba(122,143,90,0.14);
+            font-size: 13px;
+            line-height: 1;
+            color: var(--accent);
+        }
+
+        .seeds-label{
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(185,177,156,0.75);
+            white-space: nowrap;
+        }
+
+        .seeds-count{
+            font-variant-numeric: tabular-nums;
+            font-size: 14px;
+            font-weight: 750;
+            color: var(--text);
+            opacity: 0.95;
+        }
+
+        .input-wrap{
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: center;
+            min-width: 0;
+        }
+
         .input-box{
+            width: 100%;
+            max-width: 860px;
+            height: 86px;
             display: flex;
             gap: 10px;
-            padding: 12px;
+            padding: 10px;
             border-radius: var(--radius);
             background: var(--panel);
             border: 1px solid var(--border);
-            margin-top: 10px; /* pushes it a bit lower */
+            min-width: 0;
         }
 
         textarea{
@@ -155,6 +255,7 @@
             font-size: 15px;
             padding: 10px;
             line-height: 1.35;
+            min-width: 0;
         }
 
         textarea::placeholder{
@@ -167,7 +268,7 @@
             border: 1px solid rgba(194,166,109,0.5);
             background: rgba(194,166,109,0.18);
             color: var(--text);
-            font-weight: 600;
+            font-weight: 650;
             cursor: pointer;
         }
 
@@ -190,7 +291,7 @@
             padding: 8px 14px;
             border-radius: 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 650;
             cursor: pointer;
             border: 1px solid;
             background: transparent;
@@ -219,6 +320,30 @@
             opacity: 0.55;
             pointer-events: none;
         }
+
+        /* ===== Seed rain animation layer ===== */
+        .seed-layer{
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .seed{
+            position: absolute;
+            top: -24px;
+            font-size: 18px;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+            will-change: transform, opacity;
+            animation: seedFall var(--dur) linear forwards;
+        }
+
+        @keyframes seedFall{
+            0%   { transform: translate3d(0,0,0) rotate(0deg); opacity: 0; }
+            8%   { opacity: 1; }
+            100% { transform: translate3d(var(--dx), calc(100vh + 60px), 0) rotate(var(--rot)); opacity: 0; }
+        }
     </style>
 </head>
 
@@ -229,9 +354,26 @@
 
         <div id="response-box" class="response-box"></div>
 
-        <div class="input-box">
-            <textarea id="input" rows="1" placeholder="Message…"></textarea>
-            <button id="send" class="send">Send</button>
+        <div class="composer">
+            <div id="treeBtn" class="module tree-btn" role="button" tabindex="0">
+                <span class="tree-icon">🌿</span>
+                <span class="tree-label">Open Garden</span>
+            </div>
+
+            <div class="input-wrap">
+                <div class="input-box">
+                    <textarea id="input" rows="1" placeholder="Message…"></textarea>
+                    <button id="send" class="send">Send</button>
+                </div>
+            </div>
+
+            <div class="module seeds">
+                <div class="seeds-left">
+                    <span class="seed-icon">🌰</span>
+                    <span class="seeds-label">Tokens Saved</span>
+                </div>
+                <span id="seedsCount" class="seeds-count">0</span>
+            </div>
         </div>
 
         <div id="feedback" class="feedback">
@@ -247,6 +389,9 @@
     </div>
 </div>
 
+<!-- seed animation overlay -->
+<div id="seedLayer" class="seed-layer"></div>
+
 <script>
     const input = document.getElementById("input");
     const send = document.getElementById("send");
@@ -254,9 +399,56 @@
     const responseBox = document.getElementById("response-box");
     const goodBtn = document.getElementById("good");
     const badBtn = document.getElementById("bad");
+    const seedsCountEl = document.getElementById("seedsCount");
+    const treeBtn = document.getElementById("treeBtn");
+    const seedLayer = document.getElementById("seedLayer");
 
     let lastPrompt = "";
     let busy = false;
+    let seeds = 0;
+
+    function setSeeds(n){
+        seeds = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : seeds;
+        seedsCountEl.textContent = String(seeds);
+        localStorage.setItem("TOKENS_SAVED_TOTAL", String(seeds));
+    }
+
+    {
+        const saved = Number(localStorage.getItem("TOKENS_SAVED_TOTAL"));
+        if (Number.isFinite(saved)) setSeeds(saved);
+    }
+
+    function seedBurst(amount){
+        const count = Math.min(40, Math.max(10, Math.floor(amount / 4) + 10));
+        const center = window.innerWidth / 2;
+
+        for (let i = 0; i < count; i++){
+            const s = document.createElement("div");
+            s.className = "seed";
+            s.textContent = "🌰";
+
+            const x = center + (Math.random() - 0.5) * 520;
+            const dx = (Math.random() - 0.5) * 240 + "px";
+            const rot = (Math.random() * 720 - 360) + "deg";
+            const dur = (Math.random() * 0.8 + 1.0) + "s";
+
+            s.style.left = x + "px";
+            s.style.setProperty("--dx", dx);
+            s.style.setProperty("--rot", rot);
+            s.style.setProperty("--dur", dur);
+
+            seedLayer.appendChild(s);
+            s.addEventListener("animationend", () => s.remove(), { once: true });
+        }
+    }
+
+    function applyTokensSaved(data){
+        const add = Number.isFinite(data.tokensSaved) ? data.tokensSaved : 0;
+        if (add > 0){
+            setSeeds(seeds + add);
+            seedBurst(add);
+        }
+    }
 
     function setBusy(v){
         busy = v;
@@ -351,6 +543,8 @@
             regenerated: false
         });
 
+        applyTokensSaved(data);
+
         feedback.style.display = data.recycled === true ? "flex" : "none";
         input.value = "";
 
@@ -388,7 +582,13 @@
             regenerated: true
         });
 
+        applyTokensSaved(data);
+
         setBusy(false);
+    };
+
+    treeBtn.onclick = () => {
+        window.location.href = "tree.html";
     };
 </script>
 

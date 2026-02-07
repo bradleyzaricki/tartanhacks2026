@@ -80,6 +80,19 @@ public class MongoCacheStore {
 
         return Optional.ofNullable(output.getString("text"));
     }
+    public Optional<Integer> getTokensUsedForPromptId(String promptId) {
+        Document prompt = prompts.find(Filters.eq("_id", promptId)).first();
+        if (prompt == null) return Optional.empty();
+
+        String outputId = prompt.getString("outputId");
+        if (outputId == null) return Optional.empty();
+
+        Document output = outputs.find(Filters.eq("_id", outputId)).first();
+        if (output == null) return Optional.empty();
+
+        Integer tokensUsed = output.getInteger("tokensUsed");
+        return Optional.ofNullable(tokensUsed);
+    }
 
 
     private static String sha256(String s) {

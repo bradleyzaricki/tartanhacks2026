@@ -32,13 +32,15 @@ public class Controller {
             boolean recycled = false;
             String out;
             String promptId;
-
-            if (match != null && match.score() >= 0.8f) {
+            int savedTokens= 1;
+            if (match != null && match.score() >= 0.7f) {
                 String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
                 if (cached != null) {
                     out = cached;
                     recycled = true;
                     promptId = match.id();
+
+                    savedTokens = mongo.getTokensUsedForPromptId(promptId).orElse(0);
                 } else {
                     Dedalus dedalus = new Dedalus("//apideadullus");
                     DedalusResult result = dedalus.generateDedalusResponse(prompt);
@@ -57,7 +59,8 @@ public class Controller {
             return Map.of(
                     "prompt", prompt,
                     "output", out,
-                    "recycled", recycled
+                    "recycled", recycled,
+                        "tokensSaved", savedTokens
             );
         } catch (Exception e) {
             return Map.of(

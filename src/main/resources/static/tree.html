@@ -125,3 +125,21 @@
 <script src="plantgrow.js"></script>
 </body>
 </html>
+<script>
+    const tokensEl = document.getElementById("tokensSaved");
+
+    function syncTokens(){
+        const n = Number(localStorage.getItem("TOKENS_SAVED_TOTAL"));
+        const v = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+        tokensEl.textContent = String(v);
+
+        window.TOKENS_SAVED = v;
+        if (typeof window.setGrowth === "function") window.setGrowth(v);
+    }
+
+    syncTokens();
+
+    window.addEventListener("storage", (e) => {
+        if (e.key === "TOKENS_SAVED_TOTAL") syncTokens();
+    });
+</script>
