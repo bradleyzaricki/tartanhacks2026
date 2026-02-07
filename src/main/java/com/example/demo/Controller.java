@@ -6,11 +6,6 @@ import java.util.Map;
 @RestController
 public class Controller {
 
-    @GetMapping("/api/hello")
-    public String hello() {
-        return "hello from spring boot";
-    }
-
     @PostMapping("/api/receiveMessage")
     public Map<String, Object> receiveMessage(@RequestBody Map<String, String> body) {
         try {
@@ -32,8 +27,9 @@ public class Controller {
             boolean recycled = false;
             String out;
             String promptId;
-            int savedTokens= 1;
-            if (match != null && match.score() >= 0.7f) {
+            int savedTokens= 0;
+            System.out.println("MATCH VALUE: "+ match);
+            if (match != null && match.score() >= 0.7) {
                 String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
                 if (cached != null) {
                     out = cached;

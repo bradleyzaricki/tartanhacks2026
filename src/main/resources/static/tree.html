@@ -22,14 +22,39 @@
             background:var(--window-bg);
             font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
             color:var(--text);
-            overflow:hidden; /* no scrolling */
+            overflow:hidden;
         }
 
         body{
             display:flex;
             align-items:center;
             justify-content:center;
-            padding:18px; /* keeps everything away from viewport edge */
+            padding:18px;
+            position:relative;
+        }
+
+        /* back button */
+        #back_btn{
+            position:fixed;
+            top:18px;
+            left:18px;
+            padding:8px 14px;
+            font-size:13px;
+            letter-spacing:0.06em;
+            text-transform:uppercase;
+            color:var(--muted);
+            background:rgba(17,17,14,0.85);
+            border:1px solid var(--border);
+            border-radius:999px;
+            cursor:pointer;
+            z-index:10;
+            transition:color .15s ease, border-color .15s ease, background .15s ease;
+        }
+
+        #back_btn:hover{
+            color:var(--text);
+            border-color:rgba(194,166,109,0.85);
+            background:rgba(17,17,14,0.95);
         }
 
         /* square container around the plant */
@@ -39,7 +64,6 @@
             padding:18px;
             box-shadow:0 18px 45px rgba(0,0,0,0.4);
 
-            /* IMPORTANT: ensure wrapper always fits the viewport */
             max-width: calc(100vw - 36px);
             max-height: calc(100vh - 36px);
 
@@ -48,10 +72,9 @@
             gap:14px;
         }
 
-        /* canvas area takes remaining space above footer */
         #canvas_container_div{
             flex:1 1 auto;
-            min-height:0; /* allows flex child to shrink instead of pushing footer off-screen */
+            min-height:0;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -60,8 +83,6 @@
         #canvas{
             background:var(--plant-bg);
             display:block;
-
-            /* scale down if needed so footer never gets clipped */
             width: min(1000px, 100%);
             height: auto;
             max-height: 100%;
@@ -76,7 +97,7 @@
             align-items:center;
             justify-content:space-between;
             gap:12px;
-            flex:0 0 auto; /* never shrink away */
+            flex:0 0 auto;
         }
 
         #footer .label{
@@ -108,6 +129,11 @@
 </head>
 
 <body>
+
+<button id="back_btn" onclick="window.location.href='index.html'">
+    ← Back
+</button>
+
 <div id="plant_wrapper">
     <div id="canvas_container_div">
         <canvas id="canvas" width="1000" height="1000"></canvas>
@@ -123,8 +149,7 @@
 </div>
 
 <script src="plantgrow.js"></script>
-</body>
-</html>
+
 <script>
     const tokensEl = document.getElementById("tokensSaved");
 
@@ -143,3 +168,6 @@
         if (e.key === "TOKENS_SAVED_TOTAL") syncTokens();
     });
 </script>
+
+</body>
+</html>

@@ -71,7 +71,7 @@ public class PromptIndex {
         JsonNode m = matches.get(0);
         double score = m.path("score").asDouble();
 
-        if (score >= 0.95) {
+        if (score >= 0.75) {
             return new PromptMatch(
                     m.path("id").asText(),
                     score,

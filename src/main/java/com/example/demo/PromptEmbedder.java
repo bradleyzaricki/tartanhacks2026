@@ -32,6 +32,11 @@ public class PromptEmbedder {
 
         PromptIndex.PromptMatch mA = idx.query(va);
 
+        System.out.println(ca + " \n\n\n\n\n" + va);
+        scan = new Scanner(System.in);
+        System.out.println("Enter Input Prompt 1\n");
+         a = scan.nextLine();
+
         String outA = null;
         String promptId = "";
         if (mA != null && mA.score() >=  0.7) {
@@ -117,7 +122,7 @@ public class PromptEmbedder {
         Collections.sort(constraints);
 
 
-        return ""
+        return s
                 + "task: " + task + "\n"
                 + "domain: " + domain + "\n"
                 + "output: " + output + "\n"
