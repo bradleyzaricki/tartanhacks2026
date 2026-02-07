@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Plant Life</title>
+
+    <style>
+        :root{
+            --window-bg:#2a1f14;
+            --plant-bg:#11110e;
+            --border:rgba(194,166,109,0.55);
+            --text:#f2efe6;
+            --muted:#b9b19c;
+        }
+
+        *{ box-sizing:border-box }
+
+        html, body{
+            margin:0;
+            height:100%;
+            background:var(--window-bg);
+            font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+            color:var(--text);
+            overflow:hidden; /* no scrolling */
+        }
+
+        body{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:18px; /* keeps everything away from viewport edge */
+        }
+
+        /* square container around the plant */
+        #plant_wrapper{
+            border:2px solid var(--border);
+            background:rgba(17,17,14,0.92);
+            padding:18px;
+            box-shadow:0 18px 45px rgba(0,0,0,0.4);
+
+            /* IMPORTANT: ensure wrapper always fits the viewport */
+            max-width: calc(100vw - 36px);
+            max-height: calc(100vh - 36px);
+
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+        }
+
+        /* canvas area takes remaining space above footer */
+        #canvas_container_div{
+            flex:1 1 auto;
+            min-height:0; /* allows flex child to shrink instead of pushing footer off-screen */
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        #canvas{
+            background:var(--plant-bg);
+            display:block;
+
+            /* scale down if needed so footer never gets clipped */
+            width: min(1000px, 100%);
+            height: auto;
+            max-height: 100%;
+            aspect-ratio: 1 / 1;
+        }
+
+        #footer{
+            padding:10px 14px;
+            background:rgba(23,22,18,0.7);
+            border:1px solid rgba(255,255,255,0.08);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            flex:0 0 auto; /* never shrink away */
+        }
+
+        #footer .label{
+            font-size:11px;
+            letter-spacing:0.08em;
+            text-transform:uppercase;
+            color:var(--muted);
+            line-height:1.1;
+        }
+
+        #footer .value{
+            font-size:16px;
+            font-weight:700;
+            line-height:1.2;
+            margin-top:2px;
+        }
+
+        #footer .pill{
+            font-size:12px;
+            padding:4px 10px;
+            border-radius:999px;
+            background:rgba(0,0,0,0.25);
+            border:1px solid rgba(255,255,255,0.08);
+            color:var(--muted);
+            white-space:nowrap;
+            flex:0 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+<div id="plant_wrapper">
+    <div id="canvas_container_div">
+        <canvas id="canvas" width="1000" height="1000"></canvas>
+    </div>
+
+    <div id="footer">
+        <div>
+            <div class="label">Tokens Saved</div>
+            <div class="value" id="tokensSaved">1200</div>
+        </div>
+        <div class="pill">placeholder</div>
+    </div>
+</div>
+
+<script src="plantgrow.js"></script>
+</body>
+</html>
