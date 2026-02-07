@@ -33,7 +33,7 @@ public class PromptEmbedder {
 
         float[] va = embed(apiKey, ca);
         float[] vb = embed(apiKey, cb);
-
+        System.out.println(va);
         report(a, b, ca, cb, va, vb);
     }
 
