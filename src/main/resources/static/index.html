@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chat</title>
+    <title>reprompted.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -14,6 +14,7 @@
             --muted: #b9b19c;
             --accent: #7a8f5a;
             --accent2: #c2a66d;
+            --danger: #c26a6a;
             --radius: 14px;
             --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
         }
@@ -28,27 +29,6 @@
             color: var(--text);
         }
 
-        /* Tree button */
-        .tree-btn{
-            position: fixed;
-            top: 14px;
-            left: 14px;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid rgba(122,143,90,0.5);
-            background: rgba(122,143,90,0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .tree-btn:hover{
-            background: rgba(122,143,90,0.25);
-        }
-
-        /* Center layout */
         .center{
             height: 100%;
             display: flex;
@@ -60,6 +40,90 @@
             width: min(720px, 92%);
             display: flex;
             flex-direction: column;
+        }
+
+        .response-box{
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: var(--radius);
+            background: rgba(23,22,18,0.85);
+            border: 1px solid var(--border);
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .response-entry{
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            line-height: 1.45;
+        }
+
+        .response-header{
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .tag{
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+
+        .tag.recycled{
+            border-color: rgba(122,143,90,0.6);
+            color: var(--accent);
+            background: rgba(122,143,90,0.15);
+        }
+
+        .tag.regenerated{
+            border-color: rgba(194,106,106,0.8);
+            color: var(--danger);
+            background: rgba(194,106,106,0.15);
+        }
+
+        .prompt-line{
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+        }
+
+        .prompt-label{
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(185,177,156,0.75);
+            flex: 0 0 auto;
+        }
+
+        .prompt-tags{
+            display: flex;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        .prompt-text{
+            margin-left: 6px;
+            color: var(--text);
+            opacity: 0.92;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1 1 auto;
+        }
+
+        .response-body{
+            white-space: pre-wrap;
+            line-height: 1.45;
         }
 
         .input-box{
@@ -100,7 +164,6 @@
             background: rgba(194,166,109,0.28);
         }
 
-        /* Feedback bar */
         .feedback{
             display: none;
             margin-top: 10px;
@@ -108,20 +171,9 @@
             border-radius: var(--radius);
             background: rgba(23,22,18,0.85);
             border: 1px solid var(--border);
-            display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-        }
-
-        .feedback-text{
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .feedback-actions{
-            display: flex;
-            gap: 8px;
         }
 
         .fb{
@@ -145,44 +197,43 @@
         }
 
         .fb.bad{
-            border-color: rgba(194,166,109,0.55);
-            background: rgba(194,166,109,0.15);
+            border-color: rgba(194,106,106,0.7);
+            background: rgba(194,106,106,0.15);
         }
 
         .fb.bad:hover{
-            background: rgba(194,166,109,0.28);
+            background: rgba(194,106,106,0.25);
         }
 
-        svg{ display:block }
+        .disabled{
+            opacity: 0.55;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body>
 
-<!-- Tree icon -->
-<button class="tree-btn" aria-label="Tree">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2c2.6 2 3.8 4.4 3.6 6.7 2.7.1 4.9 1.7 5.9 4.3-1.6.5-3.2.6-4.7.3.6 2.2-.4 4.7-2.5 6.3-1.2-.9-2.2-2-2.8-3.2-.7 1.2-1.6 2.3-2.8 3.2-2.1-1.6-3.1-4.1-2.5-6.3-1.5.3-3.1.2-4.7-.3 1-2.6 3.2-4.2 5.9-4.3C8.2 6.4 9.4 4 12 2Z"
-              stroke="#c2a66d" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M12 12v10" stroke="#7a8f5a" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-</button>
-
-<!-- Centered input + feedback -->
 <div class="center">
     <div class="stack">
+
+        <div id="response-box" class="response-box"></div>
+
         <div class="input-box">
             <textarea id="input" rows="1" placeholder="Message…"></textarea>
             <button id="send" class="send">Send</button>
         </div>
 
         <div id="feedback" class="feedback">
-            <span class="feedback-text">Was this a good recycled response?</span>
-            <div class="feedback-actions">
+            <span style="font-size:13px;color:var(--muted)">
+                Was this a good recycled response?
+            </span>
+            <div style="display:flex;gap:8px">
                 <button id="good" class="fb good">Good</button>
                 <button id="bad" class="fb bad">Bad</button>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -190,54 +241,163 @@
     const input = document.getElementById("input");
     const send = document.getElementById("send");
     const feedback = document.getElementById("feedback");
+    const responseBox = document.getElementById("response-box");
+    const goodBtn = document.getElementById("good");
+    const badBtn = document.getElementById("bad");
+
+    let responseCount = 0;
+    let lastPrompt = "";
+    let busy = false;
+
+    function setBusy(v){
+        busy = v;
+        if (v){
+            send.classList.add("disabled");
+            goodBtn.classList.add("disabled");
+            badBtn.classList.add("disabled");
+        } else {
+            send.classList.remove("disabled");
+            goodBtn.classList.remove("disabled");
+            badBtn.classList.remove("disabled");
+        }
+    }
+
+    function appendResponse({ prompt, response, recycled = false, regenerated = false } = {}) {
+        responseCount++;
+
+        const entry = document.createElement("div");
+        entry.className = "response-entry";
+
+        const header = document.createElement("div");
+        header.className = "response-header";
+
+        if (prompt != null && String(prompt).length > 0) {
+            const promptLine = document.createElement("div");
+            promptLine.className = "prompt-line";
+
+            const label = document.createElement("span");
+            label.className = "prompt-label";
+            label.textContent = "Prompt";
+
+            const promptTags = document.createElement("div");
+            promptTags.className = "prompt-tags";
+
+            if (recycled && !regenerated) {
+                const tag = document.createElement("span");
+                tag.className = "tag recycled";
+                tag.textContent = "recycled";
+                promptTags.appendChild(tag);
+            }
+
+            if (regenerated) {
+                const tag = document.createElement("span");
+                tag.className = "tag regenerated";
+                tag.textContent = "regenerated";
+                promptTags.appendChild(tag);
+            }
+
+            const text = document.createElement("span");
+            text.className = "prompt-text";
+            text.title = String(prompt);
+            text.textContent = String(prompt);
+
+            promptLine.appendChild(label);
+            promptLine.appendChild(promptTags);
+            promptLine.appendChild(text);
+
+            header.appendChild(promptLine);
+        }
+
+        const body = document.createElement("div");
+        body.className = "response-body";
+        body.textContent = response ?? "";
+
+        entry.appendChild(header);
+        entry.appendChild(body);
+        responseBox.appendChild(entry);
+
+        responseBox.scrollTop = responseBox.scrollHeight;
+    }
+
+    async function postNewPrompt(payload){
+        const res = await fetch("/api/newPrompt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        return await res.json();
+    }
+
+    async function postGeneratePrompt(payload){
+        const res = await fetch("/api/generatePrompt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        return await res.json();
+    }
 
     send.addEventListener("click", async () => {
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || busy) return;
 
-        const res = await fetch("/api/message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text })
+        lastPrompt = text;
+        setBusy(true);
+
+        const data = await postNewPrompt({ message: text });
+
+        appendResponse({
+            prompt: data.prompt ?? text,
+            response: data.response ?? "",
+            recycled: data.recycled === true,
+            regenerated: false
         });
-        const data = await res.json();
-        console.log("Java response:", data.response);
 
-        if (data.recycled === true) {
-            feedback.style.display = "flex";
-        } else {
-            feedback.style.display = "none";
-        }
-
+        feedback.style.display = data.recycled === true ? "flex" : "none";
         input.value = "";
+
+        setBusy(false);
     });
 
-    document.getElementById("good").onclick = async () => {
-        const res = await fetch("/api/message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "GOOD_RESPONSE" })
-        });
+    goodBtn.onclick = async () => {
+        if (busy) return;
+        setBusy(true);
 
+        await postNewPrompt({ message: "GOOD_RESPONSE" });
         feedback.style.display = "none";
 
-        const data = await res.json();
-        console.log("Java response:", "Keep Response");
+        setBusy(false);
     };
 
-    document.getElementById("bad").onclick = async () => {
-        const res = await fetch("/api/message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "BAD_RESPONSE" })
-        });
+    badBtn.onclick = async () => {
+        if (busy) return;
+        setBusy(true);
 
+        await postNewPrompt({ message: "BAD_RESPONSE" });
         feedback.style.display = "none";
 
-        const data = await res.json();
-        console.log("Java response:", "Discard Response");
-    };
+        if (!lastPrompt) {
+            appendResponse({
+                prompt: "",
+                response: "No previous prompt to regenerate.",
+                recycled: false,
+                regenerated: true
+            });
+            setBusy(false);
+            return;
+        }
 
+        const data = await postGeneratePrompt({ message: lastPrompt });
+
+        appendResponse({
+            prompt: data.prompt ?? lastPrompt,
+            response: data.response ?? "",
+            recycled: false,
+            regenerated: true
+        });
+
+        setBusy(false);
+    };
 </script>
 
 </body>
