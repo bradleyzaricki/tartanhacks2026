@@ -573,7 +573,7 @@
             return;
         }
 
-        const data = await postReceiveMessage({ message: lastPrompt });
+        const data = await postReceiveMessage({ message: lastPrompt, force: true });
 
         appendResponse({
             prompt: data.prompt ?? lastPrompt,

@@ -11,9 +11,10 @@ public class Controller {
     private static final String openAIapi = dotenv.get("OPENAI_API");
     private static final String Dedalusapi = dotenv.get("DEDALUS_API");
     @PostMapping("/api/receiveMessage")
-    public Map<String, Object> receiveMessage(@RequestBody Map<String, String> body) {
+    public Map<String, Object> receiveMessage(@RequestBody Map<String, Object> body) {
         try {
-            String prompt = body.getOrDefault("message", "");
+            String prompt = String.valueOf(body.getOrDefault("message", ""));
+            boolean force = Boolean.TRUE.equals(body.get("force"));
 
             PromptEmbedder promptEmbed = new PromptEmbedder();
             PromptIndex idx = new PromptIndex();
@@ -21,37 +22,43 @@ public class Controller {
 
             String promptNormalized = promptEmbed.canonicalize(prompt);
 
-            float[] vector = promptEmbed.embed(
-                    openAIapi,
-                    promptNormalized
-            );
-
-            PromptIndex.PromptMatch match = idx.query(vector);
+            float[] vector = promptEmbed.embed(openAIapi, promptNormalized);
 
             boolean recycled = false;
             String out;
             String promptId;
-            int savedTokens= 0;
-            System.out.println("MATCH VALUE: "+ match);
-            if (match != null && match.score() >= 0.7) {
-                String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
-                if (cached != null) {
-                    out = cached;
-                    recycled = true;
-                    promptId = match.id();
+            int savedTokens = 0;
 
-                    savedTokens = mongo.getTokensUsedForPromptId(promptId).orElse(0);
-                } else {
-                    Dedalus dedalus = new Dedalus(Dedalusapi);
-                    DedalusResult result = dedalus.generateDedalusResponse(prompt);
-                    out = result.text();
-                    promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out,result.totalTokens());
-                }
-            } else {
+            if (force) {
                 Dedalus dedalus = new Dedalus(Dedalusapi);
                 DedalusResult result = dedalus.generateDedalusResponse(prompt);
                 out = result.text();
                 promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());
+            } else {
+                PromptIndex.PromptMatch match = idx.query(vector);
+
+                if (match != null && match.score() >= 0.7) {
+                    String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
+                    String storedPrompt = mongo.getPromptForPromptId(match.id()).orElse(null);
+
+                    if (cached != null) {
+                        out = cached;
+                        recycled = true;
+                        promptId = match.id();
+                        if (storedPrompt != null) prompt = storedPrompt;
+                        savedTokens = mongo.getTokensUsedForPromptId(promptId).orElse(0);
+                    } else {
+                        Dedalus dedalus = new Dedalus(Dedalusapi);
+                        DedalusResult result = dedalus.generateDedalusResponse(prompt);
+                        out = result.text();
+                        promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());
+                    }
+                } else {
+                    Dedalus dedalus = new Dedalus(Dedalusapi);
+                    DedalusResult result = dedalus.generateDedalusResponse(prompt);
+                    out = result.text();
+                    promptId = mongo.savePromptAndOutput(prompt, promptNormalized, out, result.totalTokens());
+                }
             }
 
             idx.upsert(promptId, vector, Map.of("raw_prompt", prompt));
@@ -60,14 +67,15 @@ public class Controller {
                     "prompt", prompt,
                     "output", out,
                     "recycled", recycled,
-                        "tokensSaved", savedTokens
+                    "tokensSaved", savedTokens
             );
         } catch (Exception e) {
             return Map.of(
-                    "prompt", body.getOrDefault("message", ""),
+                    "prompt", String.valueOf(body.getOrDefault("message", "")),
                     "output", "Failed: " + e.getMessage(),
                     "recycled", false
             );
         }
     }
+
 }

@@ -67,6 +67,14 @@ public class MongoCacheStore {
         return promptId;
     }
 
+    public Optional<String> getPromptForPromptId(String promptId) {
+        Document prompt = prompts.find(Filters.eq("_id", promptId)).first();
+        if (prompt == null) return Optional.empty();
+
+        return Optional.ofNullable(prompt.getString("rawPrompt"));
+    }
+
+
     /** Given Pinecone match id → return cached output text */
     public Optional<String> getOutputForPromptId(String promptId) {
         Document prompt = prompts.find(Filters.eq("_id", promptId)).first();
