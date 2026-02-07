@@ -23,7 +23,7 @@ public class Controller {
             String promptNormalized = promptEmbed.canonicalize(prompt);
 
             float[] vector = promptEmbed.embed(
-                    "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",
+                    "",
                     promptNormalized
             );
 
