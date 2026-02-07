@@ -661,6 +661,121 @@ function renderShadows() {
     shadows = []; shadowCount = 0;
 }
 
+var rainDrops = [];
+var rainIntensity = 0.9;
+var rainWind = 0.45;
+var rainAlpha = 0.28;
+var rainEnabled = true;
+
+function desiredRainCount(){
+    var a = canvas.width * canvas.height;
+    return Math.max(120, Math.min(900, Math.floor(a / 3500)));
+}
+
+function ensureRain(){
+    var target = desiredRainCount();
+    while (rainDrops.length < target) {
+        rainDrops.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: 6 + Math.random() * 8,
+            len: 8 + Math.random() * 14,
+            w: 0.8 + Math.random() * 0.8
+        });
+    }
+    if (rainDrops.length > target) rainDrops.length = target;
+}
+
+function growth01(){
+    if (!plants.length) return 0;
+    var avgSeg = 0;
+    for (var i=0; i<plants.length; i++) avgSeg += plants[i].segmentCount;
+    avgSeg /= plants.length;
+    var g = avgSeg / 18;
+    if (g < 0) g = 0;
+    if (g > 1) g = 1;
+    return g;
+}
+
+function updateRain(){
+    var g01 = growth01();
+
+    if (rainEnabled && g01 >= 0.5) rainEnabled = false;
+
+    if (rainEnabled) {
+        rainAlpha += (0.28 - rainAlpha) * 0.08;
+        ensureRain();
+    } else {
+        rainAlpha += (0 - rainAlpha) * 0.08;
+        if (rainAlpha < 0.002) {
+            rainAlpha = 0;
+            rainDrops.length = 0;
+            return;
+        }
+    }
+
+    if (!rainEnabled && rainDrops.length === 0) return;
+
+    var rate = Math.max(0.08, Math.min(1, rainIntensity + g01 * 0.55));
+    var wind = rainWind + breeze * 0.35;
+
+    for (var i=0; i<rainDrops.length; i++) {
+        var d = rainDrops[i];
+
+        d.vy = d.vy * 0.98 + (7 + rate * 9) * 0.02;
+        d.vx = d.vx * 0.98 + wind * 0.25 * 0.02;
+
+        d.x += (d.vx + wind) * (0.6 + rate * 0.8);
+        d.y += d.vy * (0.7 + rate * 0.9);
+
+        if (d.y > canvas.height + 20 || d.x < -40 || d.x > canvas.width + 40) {
+            if (!rainEnabled) {
+                d.y = canvas.height + 9999;
+                continue;
+            }
+            d.x = Math.random() * canvas.width;
+            d.y = -Math.random() * canvas.height * 0.25;
+            d.vy = 6 + Math.random() * 9;
+            d.vx = (Math.random() - 0.5) * 0.35;
+            d.len = 8 + Math.random() * 18;
+            d.w = 0.7 + Math.random() * 0.9;
+        }
+    }
+
+    if (!rainEnabled) {
+        var alive = 0;
+        for (var k=0; k<rainDrops.length; k++) if (rainDrops[k].y <= canvas.height + 50) alive++;
+        if (alive === 0) rainDrops.length = 0;
+    }
+}
+
+function renderRain(){
+    if (rainAlpha <= 0 || rainDrops.length === 0) return;
+
+    ctx.save();
+    ctx.globalAlpha = rainAlpha;
+    ctx.strokeStyle = "rgba(200,220,255,1)";
+    ctx.lineCap = "round";
+
+    for (var i=0; i<rainDrops.length; i++) {
+        var d = rainDrops[i];
+        if (d.y > canvas.height + 50) continue;
+
+        ctx.lineWidth = d.w;
+
+        var dx = (d.vx + rainWind + breeze * 0.35) * 1.3;
+        var dy = d.len;
+
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x + dx, d.y + dy);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
 for (var i=0; i<20; i++) createPlant();
 
 function display() {
@@ -669,6 +784,8 @@ function display() {
     renderPlants();
     shedSunlight();
     renderShadows();
+    updateRain();
+    renderRain();
     window.requestAnimationFrame(display);
 }
 

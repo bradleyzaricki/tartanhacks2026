@@ -31,6 +31,7 @@ public class Controller {
             System.out.println("MATCH VALUE: "+ match);
             if (match != null && match.score() >= 0.7) {
                 String cached = mongo.getOutputForPromptId(match.id()).orElse(null);
+                prompt = mongo.getPromptForPromptId(match.id()).orElse(null);
                 if (cached != null) {
                     out = cached;
                     recycled = true;
